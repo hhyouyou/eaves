@@ -486,17 +486,24 @@ def run_pipeline(city_names: List[str] = None):
                 print(f"\n  [跳过] {city['show_name']}: 未找到城市编码")
                 continue
 
-            records = step2_collect_price_data(
-                session, city["name_value"], city["show_name"],
-                "202506", "202605"
-            )
-            safe_sleep()
+            for year in range(2020, 2026):
+                start = f"{year}01"
+                end = f"{year}12"
+                print(f"\n  [年份] {year} ({start} - {end})")
 
-            if records:
-                step3_load_dwd(session, records)
-                step4_load_dim(session, records)
-                step5_aggregate_dws(session, city["name_value"], city["show_name"])
-                step6_generate_ads(session, city["name_value"], city["show_name"])
+                records = step2_collect_price_data(
+                    session, city["name_value"], city["show_name"],
+                    start, end
+                )
+                safe_sleep()
+
+                if records:
+                    step3_load_dwd(session, records)
+                    step4_load_dim(session, records)
+
+            # 汇总和报告只执行一次
+            step5_aggregate_dws(session, city["name_value"], city["show_name"])
+            step6_generate_ads(session, city["name_value"], city["show_name"])
 
         print(f"\n完成时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         print("=" * 60)
